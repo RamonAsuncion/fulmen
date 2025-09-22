@@ -1,1 +1,14 @@
-bin/
+# C++
+/backend/build/
+/backend/CMakeFiles/
+/backend/Makefile/
+/backend/*.cmake/
+/backend/CMakeCache.txt
+
+# .NET
+/ui/bin/
+/ui/obj/
+
+# OS/editor junk
+.DS_Store
+*~
