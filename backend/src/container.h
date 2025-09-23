@@ -11,8 +11,7 @@
 extern "C" {
 #endif
 
-API int container_start(const char *name);
-API int container_stop(const char *name);
+API int run_container(const char* image_path, const char* command);
 
 #ifdef __cplusplus
 }
