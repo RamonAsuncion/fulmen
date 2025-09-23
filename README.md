@@ -2,7 +2,11 @@
 
 A minimal container runtime and tooling.
 
-Quick start
+## Preview
+
+![Preview](ui/Assets/preview.png)
+
+## Quick start
 
 Platform support: native runtime only supports Linux hosts. I don't have any plans to support macOS or Windows as of now.
 
@@ -23,7 +27,7 @@ Optional flags
 - `-c` / `--command` : command string to run inside the container filesystem.
 - `--keep-tar` : if the CLI fetched a tarball, keep it instead of removing the temporary file.
 
-Build
+## Build
 
 ```bash
 # build everything (backend + cli + ui)
