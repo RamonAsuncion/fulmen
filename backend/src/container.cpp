@@ -308,6 +308,8 @@ extern "C" int run_container(const char *image_path_c, const char *command_c)
   std::string image_path = image_path_c ? image_path_c : "";
   std::string command = command_c ? command_c : "";
 
+  std::cerr << "[run_container] Starting container with image_path=" << image_path << " and command=" << command << "\n";
+
   struct container_state s;
 
   if (create_temp_dir(s) != 0) {
@@ -315,16 +317,21 @@ extern "C" int run_container(const char *image_path_c, const char *command_c)
     return ERR_MKDTEMP;
   }
 
+  std::cerr << "[run_container] Temporary directory created: " << s.temp_dir << "\n";
+
   if (setup_rootfs(s, image_path) != 0) {
+    std::cerr << "[run_container] Failed to set up root filesystem\n";
     return ERR_EXTRACT_META;
   }
 
+  std::cerr << "[run_container] Root filesystem set up successfully\n";
+
   if (prepare_namespaces() != 0) {
-    std::cerr << "namespace preparation failed\n";
+    std::cerr << "[run_container] Namespace preparation failed\n";
   }
 
   if (prepare_mounts_dirs(s) != 0) {
-    std::cerr << "failed to create mount dirs\n";
+    std::cerr << "[run_container] Failed to create mount directories\n";
   }
 
   pid_t pid = fork();
@@ -336,11 +343,13 @@ extern "C" int run_container(const char *image_path_c, const char *command_c)
     return ERR_FORK;
   }
 
-  if (pid == 0)
-    child_run(s, command); // does not return
+  if (pid == 0) {
+    std::cerr << "[run_container] In child process, running command\n";
+    child_run(s, command);
+  }
 
+  std::cerr << "[run_container] In parent process, waiting for child\n";
   return parent_wait_and_cleanup(s, pid);
-}
 #else
   (void)image_path_c; (void)command_c;
   fprintf(stderr, "fulmen backend native runtime is only supported on Linux hosts\n");
