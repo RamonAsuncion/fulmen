@@ -13,12 +13,11 @@ add_library(fulmen_backend SHARED
 set_target_properties(fulmen_backend PROPERTIES SUFFIX ".so")
 
 target_include_directories(fulmen_backend PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/src}
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 if(NOT WIN32)
-  target_compile_options(fulmen_backend PRIVATE
-    -fvisibility=hidden
-  )
+target_compile_options(fulmen_backend PRIVATE
+  -fvisibility=hidden
+)
 endif()
-

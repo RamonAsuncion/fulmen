@@ -13,3 +13,12 @@
 .DS_Store
 *~
 .vscode
+
+# CLI
+cli/fulmen
+cli/*.o
+cli/*.exe
+
+# Python cache
+**/__pycache__/
+**/*.py[cod]
