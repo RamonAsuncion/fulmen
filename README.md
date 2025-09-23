@@ -42,3 +42,9 @@ make ui-run
 # run CLI without installing
 ./cli/fulmen run example-image:latest
 ```
+
+## Future plans (??)
+
+- daemonizing the container
+- process montioring
+- interactive mode
