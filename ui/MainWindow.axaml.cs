@@ -1,19 +1,18 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Avalonia.Threading;
 using Avalonia.Platform.Storage;
-using Avalonia.Input;
+using System.Runtime.InteropServices;
 
 namespace FulmenUI
 {
   public partial class MainWindow : Window
   {
     private CancellationTokenSource? _cts;
+
+    [DllImport("libfulmen_backend.so", EntryPoint = "run_container", CallingConvention = CallingConvention.Cdecl)]
+    private static extern int RunContainer(string imagePath, string command);
 
     public MainWindow()
     {
@@ -54,7 +53,16 @@ namespace FulmenUI
       _cts = new CancellationTokenSource();
       try
       {
-        await RunProcessAsync("/bin/echo", new[] { $"Running: {image} {cmd}" }, _cts.Token);
+        await Task.Run(() =>
+        {
+          int result = RunContainer(image, cmd);
+          Dispatcher.UIThread.Post(() =>
+          {
+            OutputBox.Text += $"Backend result: {result}\n";
+            OutputBox.CaretIndex = OutputBox.Text?.Length ?? 0;
+          });
+        }, _cts.Token);
+
         StatusLabel.Text = "Finished";
         CommandBox.Text = string.Empty;
       }

@@ -2,8 +2,6 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using ReactiveUI;
-using System;
-using Avalonia.Threading;
 
 namespace FulmenUI;
 
