@@ -10,4 +10,13 @@
     <PackageReference Include="Avalonia.Desktop" Version="11.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <NativeCopy Include="../backend/build/libfulmen_backend.so" />
+  </ItemGroup>
+
+  <Target Name="CopyNativeLibraries" AfterTargets="Build">
+    <Copy SourceFiles="@(NativeCopy)" DestinationFolder="$(OutDir)" />
+  </Target>
+
 </Project>
+

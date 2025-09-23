@@ -10,6 +10,8 @@ add_library(fulmen_backend SHARED
   src/container.cpp
 )
 
+set_target_properties(fulmen_backend PROPERTIES SUFFIX ".so")
+
 target_include_directories(fulmen_backend PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src}
 )
