@@ -1,6 +1,6 @@
 # Building a Container Runtime
 
-A container runtime is the software that loads, runs, and manages containers. No it's not a VM. It's a process that runs on the host machine. 
+A container runtime is the software that loads, runs, and manages containers. No it's not a VM. It's a process that runs on the host machine.
 
 ## Minimal setting up a container
 
@@ -15,7 +15,7 @@ This only works on Linux.
 
 ## How to make this real
 
-We need to add namespaces (similar to programming languages) where if 
+We need to add namespaces (similar to programming languages) where if
 you have a global variable everyone can see it but if you have a namespace
 then you can create a variable with the same name in two different namespaces.
 
@@ -24,7 +24,14 @@ then you can create a variable with the same name in two different namespaces.
 - PID
 - User
 - UTS (hostname)
-- Cgroupe
+- Cgroup
+  - UI to control process
+    - Memory limit
+    - I/O Bandwidth
+    - CPU limits
+    - Process priotization
+- PivotRoot
+- Layers & UnionsFS
 
 ## References
 
