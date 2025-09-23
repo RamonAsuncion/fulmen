@@ -8,6 +8,7 @@
 # .NET
 /ui/bin/
 /ui/obj/
+/ui/FodyWeavers.xsd
 
 # OS/editor junk
 .DS_Store

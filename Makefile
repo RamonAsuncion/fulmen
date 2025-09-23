@@ -16,29 +16,32 @@ backend:
 cli:
 	$(MAKE) -C cli
 
-ui:
+ui: backend
 	@if command -v dotnet >/dev/null 2>&1; then \
 		dotnet build ui/ui.csproj -c Debug; \
 		LIB=`ls $(BACKEND_BUILD)/libfulmen_backend.* 2>/dev/null | head -n1 || true`; \
 		if [ -n "$$LIB" ]; then \
-			UI_BIN=`find ui/bin -type d -path "*/net*" -print -quit || true`; \
-			if [ -n "$$UI_BIN" ]; then cp -v "$$LIB" "$$UI_BIN/"; fi; \
+		UI_BIN=`find ui/bin -type d -path "*/net*" -print -quit || true`; \
+		if [ -n "$$UI_BIN" ]; then cp -v "$$LIB" "$$UI_BIN/"; fi; \
 		fi; \
-	else \
+		else \
 		printf 'dotnet not found; skipping UI build\n' >&2; \
-	fi
+		fi
 
 ui-run:
 	@if command -v dotnet >/dev/null 2>&1; then \
 		cd ui && dotnet run --no-build -c Debug; \
-	else \
+		else \
 		printf 'dotnet not found\n' >&2; \
-	fi
+		fi
 
 clean:
 	-@rm -rf $(BACKEND_BUILD)
 	-@$(MAKE) -C cli clean || true
-	-@if [ -d ui ]; then dotnet clean ui/ui.csproj -c Debug || true; fi
+	-@if [ -d ui ]; then \
+		dotnet clean ui/ui.csproj -c Debug || true; \
+		rm -rf ui/obj ui/bin; \
+		fi
 
 rebuild: clean setup
 

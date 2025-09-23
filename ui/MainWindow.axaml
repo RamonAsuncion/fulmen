@@ -1,0 +1,112 @@
+<Window xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="clr-namespace:FulmenUI"
+  x:Class="FulmenUI.MainWindow"
+  x:DataType="vm:MainWindowViewModel"
+  Title="Fulmen Container Launcher"
+  Width="700" Height="500"
+  MinWidth="600" MinHeight="400"
+  Background="{Binding Background}">
+
+  <Window.Styles>
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource ButtonBackground}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding" Value="8,4" />
+      <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style Selector="Button:pointerover">
+      <Setter Property="Background" Value="#FF0000" />
+      <!-- Gotta debug this. Aint working -->
+    </Style>
+  </Window.Styles>
+
+  <DockPanel Margin="16">
+
+    <Grid DockPanel.Dock="Top">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <StackPanel Grid.Column="0" Spacing="4" HorizontalAlignment="Left">
+        <TextBlock Text="Fulmen" FontSize="28" FontWeight="Bold"
+          Foreground="{Binding Foreground}" />
+        <TextBlock Text="Lightweight container runtime UI" FontSize="14"
+          Foreground="{Binding Foreground}" />
+      </StackPanel>
+      <Button x:Name="ToggleThemeButton"
+        Grid.Column="1"
+        BorderThickness="0"
+        Background="Transparent"
+        Click="OnToggleThemeClicked">
+        <Image Width="24" Height="24"
+          Source="{Binding ThemeIcon, Mode=OneWay}"
+          Cursor="Hand" />
+      </Button>
+    </Grid>
+
+    <StackPanel DockPanel.Dock="Top" Spacing="16" Margin="0,28,0,0">
+      <StackPanel>
+        <TextBlock Text="Image (tar or reference)" FontWeight="SemiBold"
+          Foreground="{Binding Foreground}" />
+        <DockPanel Margin="0,4,0,0">
+          <TextBox x:Name="ImagePathBox"
+            Watermark="Image tarball path or image reference"
+            HorizontalAlignment="Stretch"
+            MinWidth="300"
+            Foreground="{Binding Foreground}" />
+          <Button x:Name="BrowseButton" Content="Browse" Margin="8,0,0,0" />
+        </DockPanel>
+      </StackPanel>
+
+      <StackPanel>
+        <TextBlock Text="Command (optional)" FontWeight="SemiBold"
+          Foreground="{Binding Foreground}" />
+        <DockPanel Margin="0,4,0,0">
+          <Image Source="{Binding CommandIcon, Mode=OneWay}"
+            Width="16" Height="16" Margin="0,0,8,0" />
+          <TextBox x:Name="CommandBox"
+            Watermark="/bin/echo Hello"
+            Text=""
+            HorizontalAlignment="Stretch"
+            MinWidth="300"
+            Foreground="{Binding Foreground}" />
+        </DockPanel>
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8" Margin="0,0,0,16">
+        <Button x:Name="RunButton" Content="Run" Width="80" />
+        <Button x:Name="CancelButton" Content="Cancel" Width="80" />
+      </StackPanel>
+
+      <ProgressBar x:Name="Progress"
+        IsVisible="False"
+        IsIndeterminate="True"
+        Height="4" />
+    </StackPanel>
+
+    <TextBlock x:Name="StatusLabel"
+      DockPanel.Dock="Bottom"
+      Text="Ready"
+      HorizontalAlignment="Center"
+      FontStyle="Italic"
+      FontSize="12"
+      Margin="0,8,0,0"
+      Foreground="{Binding Foreground}" />
+
+    <StackPanel DockPanel.Dock="Bottom" Spacing="8">
+      <TextBlock Text="Output" FontWeight="SemiBold"
+        Foreground="{Binding Foreground}" />
+      <ScrollViewer VerticalScrollBarVisibility="Auto" MinHeight="200">
+        <TextBox x:Name="OutputBox"
+          IsReadOnly="True"
+          AcceptsReturn="True"
+          FontFamily="Consolas, monospace"
+          TextWrapping="Wrap"
+          Foreground="{Binding Foreground}" />
+      </ScrollViewer>
+    </StackPanel>
+
+  </DockPanel>
+</Window>
