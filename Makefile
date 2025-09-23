@@ -1,4 +1,4 @@
-PREFIX ?= /usr/local
+PREFIX ?= $(shell if [ `id -u` -eq 0 ]; then echo "/usr/local"; else echo "$(HOME)/local"; fi)
 CLI_BIN = cli/fulmen
 BACKEND_BUILD = backend/build
 JOBS ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
@@ -13,26 +13,32 @@ backend:
 	cmake -S backend -B $(BACKEND_BUILD)
 	cmake --build $(BACKEND_BUILD) -- -j$(JOBS)
 
-cli:
+cli: backend
 	$(MAKE) -C cli
 
 ui: backend
-	@if command -v dotnet >/dev/null 2>&1; then \
-		dotnet build ui/ui.csproj -c Debug; \
-		LIB=`ls $(BACKEND_BUILD)/libfulmen_backend.* 2>/dev/null | head -n1 || true`; \
-		if [ -n "$$LIB" ]; then \
+	@if ! command -v dotnet >/dev/null 2>&1; then \
+		printf 'dotnet not found, skipping UI build...\n' >&2; \
+		exit 1; \
+	fi
+	dotnet build ui/ui.csproj -c Debug || exit 1
+	LIB=`ls $(BACKEND_BUILD)/libfulmen_backend.* 2>/dev/null | head -n1 || true`
+	if [ -n "$$LIB" ]; then \
 		UI_BIN=`find ui/bin -type d -path "*/net*" -print -quit || true`; \
-		if [ -n "$$UI_BIN" ]; then cp -v "$$LIB" "$$UI_BIN/"; fi; \
-		fi; \
+		if [ -n "$$UI_BIN" ]; then \
+			cp -v "$$LIB" "$$UI_BIN/" || exit 1; \
 		else \
-		printf 'dotnet not found; skipping UI build\n' >&2; \
-		fi
+			printf 'UI build output directory not found...\n' >&2; exit 1; \
+		fi; \
+	else \
+		printf 'Backend library not found, skipping...\n' >&2; exit 1; \
+	fi
 
 ui-run:
 	@if command -v dotnet >/dev/null 2>&1; then \
 		cd ui && dotnet run --no-build -c Debug; \
 		else \
-		printf 'dotnet not found\n' >&2; \
+		printf 'dotnet not found!\n' >&2; \
 		fi
 
 clean:
@@ -46,16 +52,17 @@ clean:
 rebuild: clean setup
 
 install: setup
-	sudo mkdir -p $(PREFIX)/bin $(PREFIX)/lib
-	sudo cp $(CLI_BIN) $(PREFIX)/bin/
+	mkdir -p $(PREFIX)/bin $(PREFIX)/lib
+	cp $(CLI_BIN) $(PREFIX)/bin/
 	@if [ -f $(BACKEND_BUILD)/libfulmen_backend.so ]; then \
-		sudo cp $(BACKEND_BUILD)/libfulmen_backend.so $(PREFIX)/lib/ && sudo ldconfig || true; \
-		fi
+		cp $(BACKEND_BUILD)/libfulmen_backend.so $(PREFIX)/lib/; \
+		if [ "$(PREFIX)" = "/usr/local" ]; then ldconfig; fi; \
+	fi
 	@if [ -f $(BACKEND_BUILD)/libfulmen_backend.dylib ]; then \
-		sudo cp $(BACKEND_BUILD)/libfulmen_backend.dylib $(PREFIX)/lib/; \
-		fi
+		cp $(BACKEND_BUILD)/libfulmen_backend.dylib $(PREFIX)/lib/; \
+	fi
 
 uninstall:
-	sudo rm -f $(PREFIX)/bin/fulmen
-	sudo rm -f $(PREFIX)/lib/libfulmen_backend.so
-	sudo rm -f $(PREFIX)/lib/libfulmen_backend.dylib
+	rm -f $(PREFIX)/bin/fulmen
+	rm -f $(PREFIX)/lib/libfulmen_backend.so
+	rm -f $(PREFIX)/lib/libfulmen_backend.dylib
