@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <dlfcn.h>
 #include <sys/utsname.h>
+#include <libgen.h>
+#include <limits.h>
 
 #define EXIT_USAGE 2
 #define EXIT_FETCH_FAIL 3
@@ -72,6 +74,7 @@ int main(int argc, char **argv)
   int keep_tar = 0;
   struct utsname uts;
   int debug = 0;
+  int rc = 0;
 
   for (int i = 2; i < argc; ++i) {
     if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--command") == 0) {
@@ -139,39 +142,56 @@ int main(int argc, char **argv)
 
 
   if (!libpath) {
-    fprintf(stderr, "Could not find backend library in ../backend/build (expected libfulmen_backend.so)\n");
-    if (created_temp && !keep_tar)
-      unlink(tar_path);
-    free(tar_path);
-    return 4;
-  }
+    char exe_path[PATH_MAX];
+    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    if (len == -1) {
+      perror("readlink");
+      return EXIT_LIB_NOT_FOUND;
+    }
+    exe_path[len] = '\0';
 
-  void *h = dlopen(libpath, RTLD_NOW | RTLD_LOCAL);
-  if (!h) {
-    fprintf(stderr, "dlopen failed: %s\n", dlerror());
-    if (created_temp && !keep_tar)
-      unlink(tar_path);
-    free(tar_path);
-    return 5;
-  }
-  if (debug) fprintf(stderr, "[fulmen debug] dlopen succeeded\n");
+    char *exe_dir = dirname(exe_path);
 
-  typedef int (*run_fn_t)(const char *, const char *);
-  run_fn_t run_container = (run_fn_t)dlsym(h, "run_container");
-  if (!run_container) {
-    fprintf(stderr, "Could not find symbol run_container: %s\n", dlerror());
+    char project_root[PATH_MAX];
+    snprintf(project_root, sizeof(project_root), "%s/..", exe_dir);
+
+    char abs_libpath[PATH_MAX];
+    int written = snprintf(abs_libpath, sizeof(abs_libpath), "%s/backend/build/libfulmen_backend.so", project_root);
+    if (written < 0 || written >= sizeof(abs_libpath)) {
+      fprintf(stderr, "Error: Path to backend library is too long or snprintf failed.\n");
+      return EXIT_LIB_NOT_FOUND;
+    }
+
+    if (debug) fprintf(stderr, "[fulmen debug] abs_libpath=%s\n", abs_libpath);
+
+    void *h = dlopen(abs_libpath, RTLD_NOW | RTLD_LOCAL);
+    if (!h) {
+      fprintf(stderr, "dlopen failed: %s\n", dlerror());
+      if (created_temp && !keep_tar)
+        unlink(tar_path);
+      free(tar_path);
+      return 5;
+    }
+    if (debug) fprintf(stderr, "[fulmen debug] dlopen succeeded\n");
+
+    typedef int (*run_fn_t)(const char *, const char *);
+    run_fn_t run_container = (run_fn_t)dlsym(h, "run_container");
+    if (!run_container) {
+      fprintf(stderr, "Could not find symbol run_container: %s\n", dlerror());
+      dlclose(h);
+      if (created_temp && !keep_tar)
+        unlink(tar_path);
+      free(tar_path);
+      return 6;
+    }
+    if (debug) fprintf(stderr, "[fulmen debug] found run_container symbol\n");
+
+    rc = run_container(tar_path, command);
+    if (debug) fprintf(stderr, "[fulmen debug] run_container returned %d\n", rc);
+
     dlclose(h);
-    if (created_temp && !keep_tar)
-      unlink(tar_path);
-    free(tar_path);
-    return 6;
   }
-  if (debug) fprintf(stderr, "[fulmen debug] found run_container symbol\n");
 
-  int rc = run_container(tar_path, command);
-  if (debug) fprintf(stderr, "[fulmen debug] run_container returned %d\n", rc);
-
-  dlclose(h);
   if (created_temp && !keep_tar)
     unlink(tar_path);
   free(tar_path);
